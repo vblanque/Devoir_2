@@ -3,7 +3,7 @@ from typing import List, Tuple
 import numpy as np
 """ 
     Binome 1 : Blanquez Victor (2225992)
-    Binome 2 : Nom Prenom (Matricule)
+    Binome 2 : Dietrich Colin (2226611)
     Description succinte de l'implementation :
     ...
 """
@@ -52,7 +52,7 @@ def create_neighbours(problem: UFLP, sol):
     current_mains = sol[0]
     neighbours = []
     # Solutions with an additional main station
-    if current_mains.count(1) < problem.n_main_station : #check if all main stations are already opened
+    if current_mains.count(1) < problem.n_main_station : # check if all main stations are already opened
         for i in range(problem.n_main_station):
             if current_mains[i] == 0: #check if station is not opened
                 new_mains = current_mains.copy()
