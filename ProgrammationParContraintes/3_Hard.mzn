@@ -1,5 +1,5 @@
-% NOM_ETUDIANT_1 (MATRICULE_1)
-% NOM_ETUDIANT_2 (MATRICULE_2)
+% Colin Dietrich (222661)
+% Blanquez Victor (2225992)
 
 include "globals.mzn";
 
@@ -31,6 +31,55 @@ var int: objectif_match_espaces;
 % Partie étudiant
 %-----------------------------------------------------------------------------%
 
+% 1. Pour effectuer une rencontre, deux équipe doivent être présente sur le même terrain.
+% 2. Un match doit avoir lieu sur le terrain désigné comme le domicile de l’une des deux équipes.
+% 6. Les équipes doivent jouer deux fois l’une contre l’autre.
+% 7. Les deux rencontres de deux équipes doivent être espacées de 3 jours au minimum.
+% 8. Les deux rencontres de deux équipes doivent avoir lieu sur des terrains différents.
+constraint forall(e1, e2 in equipes where e1 < e2)(
+  let {
+    var int: firstDate = dates[e1, e2].1,
+    var int: secondDate = dates[e1, e2].2,
+    var int: firstMatch = min([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0]),
+    var int: secondMatch = max([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0])
+  } in (
+    (firstDate > 0 -> calendrier[e1, firstDate] = calendrier[e2, firstDate]) /\
+    ((calendrier[e1, firstDate] = e1) \/ (calendrier[e1, firstDate] = e2)) /\
+    (secondDate > 0 -> calendrier[e1, secondDate] = calendrier[e2, secondDate]) /\
+    ((calendrier[e1, secondDate] = e1) \/ (calendrier[e1, secondDate] = e2)) /\
+    (rencontres[e1,e2] = 2) /\
+    (secondMatch - firstMatch >= 3) /\
+    (calendrier[e1,firstMatch] != calendrier[e1,secondMatch])
+  )
+);
+
+
+% 3. Un terrain ne peut accueillir plus de deux équipes.
+constraint forall(j in jours)(
+  forall(t in terrains where t > 0)(
+    sum(e in equipes)(calendrier[e,j] = t) <= 2
+  )
+);
+
+% 4. Si une équipe ne joue pas lors d’une journée, elle est placée sur le terrain n°0.
+% Impliqué par le modèle
+
+% 5. Une équipe n'est pas autorisée à jouer plus de 7 jours sur son propre terrain.
+constraint forall(e in equipes)(
+  sum(j in jours)(calendrier[e,j] = e) <= 7
+);
+
+% On souhaite maximiser le nombre de fois où deux matchs entre les mêmes équipes sont espacés par aux moins 6 jours
+objectif_match_espaces = sum(e1, e2 in equipes where e1 < e2)(
+  let {
+    var int: firstMatch = min([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0]),
+    var int: secondMatch = max([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0])
+  } in (
+    if secondMatch - firstMatch >= 6 then 1 else 0 endif
+  )
+);
+
+solve maximize objectif_match_espaces;
 
 %-----------------------------------------------------------------------------%
 

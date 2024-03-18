@@ -1,5 +1,5 @@
-% NOM_ETUDIANT_1 (MATRICULE_1)
-% NOM_ETUDIANT_2 (MATRICULE_2)
+% Colin Dietrich (222661)
+% Blanquez Victor (2225992)
 
 include "globals.mzn";
 
@@ -21,8 +21,18 @@ var int: longueur;
 %-----------------------------------------------------------------------------%
 % Partie étudiant
 %-----------------------------------------------------------------------------%
+% La première fréquence commence toujours à 0
+constraint frequences[1] = 0;
 
+% Les fréquences sont en ordre croissant
+constraint increasing(frequences);
 
+% Toutes les distances sont uniques
+constraint all_different(distances);
+
+% On cherche la plage de fréquences la plus courte possible
+longueur = frequences[m];
+solve minimize longueur;
 
 %-----------------------------------------------------------------------------%
 
