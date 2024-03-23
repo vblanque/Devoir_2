@@ -52,8 +52,24 @@ constraint sum(i in dim, j in dim)(terrain[i,j] = B) = sum(i in dim, j in dim)(t
 % Maximiser le nombre total de tours de chaque type
 total_commun = sum(i in dim, j in dim)(terrain[i,j] = B);
 
-% contrainte symétrique: la première tour qui apparaît dans l'ordre de lecture doit être bleue, éliminant ainsi les solutions qui permutent simplement les positions des tours bleues et rouges.
+% contrainte symétrique: la première tour qui apparaît dans l'ordre de lecture doit être bleue
 constraint exists(i, j in dim where (forall(k in 1..i-1, l in dim)(terrain[k,l] = V) /\ forall(l in 1..j-1)(terrain[i,l] = V)))(terrain[i,j] = B);
+
+% contrainte symétrique: rupture de symétrie lexicographique
+constraint (
+    % symétrie de transposition
+    lex_lesseq(array1d(terrain), [ terrain[j,i] | i,j in 1..n ]) /\
+    % symétrie de réflexion verticale
+    lex_lesseq(array1d(terrain), [ terrain[i,j] | i in reverse(1..n), j in 1..n ]) /\
+    % symétrie de réflexion horizontale
+    lex_lesseq(array1d(terrain), [ terrain[i,j] | i in 1..n, j in reverse(1..n) ]) /\
+    % symétrie de rotation de 90 degrés (ou symétrie de réflexion diagonale secondaire)
+    lex_lesseq(array1d(terrain), [ terrain[j,i] | i in reverse(1..n), j in 1..n ]) /\
+    % symétrie de rotation de 180 degrés
+    lex_lesseq(array1d(terrain), [ terrain[i,j] | i,j in reverse(1..n) ]) /\
+    % symétrie de rotation de 270 degrés
+    lex_lesseq(array1d(terrain), [ terrain[j,i] | i,j in reverse(1..n) ])
+);
 
 solve maximize total_commun;
 
