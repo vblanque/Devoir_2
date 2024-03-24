@@ -76,13 +76,14 @@ constraint forall(e1, e2 in equipes where e1 < e2)(
 % Suivi de l'espacement entre les matchs
 array[equipes, equipes] of var jours: espacement_matchs;
 
-% Contrainte pour l'espacement entre les matchs
 constraint forall(e1, e2 in equipes where e1 < e2)(
   let {
     var int: firstMatch = min([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0]),
     var int: secondMatch = max([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0])
   } in (
+    % Contrainte pour l'espacement entre les matchs
     espacement_matchs[e1, e2] = secondMatch - firstMatch /\
+    % 8. Les deux rencontres de deux équipes doivent avoir lieu sur des terrains différents.
     calendrier[e1,firstMatch] != calendrier[e1,secondMatch]
   )
 );
