@@ -1,5 +1,6 @@
 % Colin Dietrich (222661)
 % Blanquez Victor (2225992)
+% Le modèle trouve une solution optimale maximisant notre objectif pour n=8 en environs 24s
 
 include "globals.mzn";
 
