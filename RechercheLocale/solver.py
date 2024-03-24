@@ -40,10 +40,10 @@ def solve(problem: UFLP) -> Tuple[List[int], List[int]]:
     depth_random_local_search = 40 # sufficient to find the minimum of the local searchs (all 3 instances)
     
     # first local search with forced intial solution (beats secret agent)
-    sol = local_search(problem, 15, initial_solution=cheap_solution_1)
+    sol = local_search(problem, depth=15, initial_solution=cheap_solution_1)
     cost = problem.calculate_cost(sol[0],sol[1])
     # second local search with another forced intial solution (also beats secret agent)
-    new_sol = local_search(problem, 15, initial_solution=cheap_solution_2)
+    new_sol = local_search(problem, depth=15, initial_solution=cheap_solution_2)
     new_cost = problem.calculate_cost(new_sol[0],new_sol[1])
     # select solution with lowest cost
     if new_cost<cost:
@@ -52,7 +52,7 @@ def solve(problem: UFLP) -> Tuple[List[int], List[int]]:
     # n local search with random initial solution (diversification, also beats secret agent)
     for i in range(nbr_random_local_searchs):
         # new solution with local search
-        new_sol = local_search(problem, depth_random_local_search, initial_solution=random_solution)
+        new_sol = local_search(problem, depth=depth_random_local_search, initial_solution=random_solution)
         new_cost = problem.calculate_cost(new_sol[0],new_sol[1])
         # select solution with lowest cost
         if new_cost<cost:
@@ -60,18 +60,18 @@ def solve(problem: UFLP) -> Tuple[List[int], List[int]]:
             cost = new_cost
     return sol
 
-def local_search(problem: UFLP, n, initial_solution):
+def local_search(problem: UFLP, depth, initial_solution):
     """Local search with a choice in the initial solution and the depth of the search.
 
     Args : problem (UFLP): Instance of the problem
-    n : depth of the search (number of times neighbours are generated)
+    depth : depth of the search (number of times neighbours are generated)
     initial_solution : function generating the initial solution (optimized or random)
     """
     # initial solution and cost
     sol = initial_solution(problem)
     cost = problem.calculate_cost(sol[0],sol[1])
     # n-search in neighbours and selection
-    for i in range(n):
+    for i in range(depth):
         solution_changed = False  # Flag to track if a better solution has been found in the neighbours
         # explore neighbour solutions
         neighbours = create_neighbours(problem, sol)
@@ -114,9 +114,8 @@ def cheap_solution_2(problem: UFLP):
     return main_stations.tolist(), satellites
 
 def random_solution(problem: UFLP):
-    """Creation of a random solution :
-    Opening random main stations to indroduce diversification.
-    Assign the satellite stations to their nearest main station."""
+    """Creation of a random initital solution :
+    Opening random main stations to indroduce diversification."""
     # Create a random array of 4 digits (0 or 1)
     main_stations = np.random.randint(2, size=problem.n_main_station, dtype=np.int32)
     # Assign satellites to the nearest main station
