@@ -52,17 +52,10 @@ constraint forall(e in equipes)(
   )
 );
 
-% Chaque équipe joue au maximum un match par jour
-constraint forall(e in equipes)(
-  forall(j in jours)(
-    sum(t in terrains where t > 0)(calendrier[e,j] = t) <= 1
-  )
-);
-
 % 3. Un terrain ne peut accueillir plus de deux équipes.
 constraint forall(j in jours)(
   forall(t in terrains where t > 0)(
-    sum(e in equipes)(calendrier[e,j] = t) <= 2
+    count([calendrier[e, j] | e in equipes], t) <= 2
   )
 );
 
@@ -76,34 +69,36 @@ constraint forall(e1, e2 in equipes where e1 < e2)(
   let {
     var set of int: matchDays = {j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0}
   } in (
-    card(matchDays) = 2 /\
-    forall(md1, md2 in matchDays where md1 < md2)(
-      md2 - md1 > 3
-    )
+    card(matchDays) = 2
   )
 );
 
-% 8. Les deux rencontres doivent avoir lieu sur des terrains différents.
+% Suivi de l'espacement entre les matchs
+array[equipes, equipes] of var jours: espacement_matchs;
+
+% Contrainte pour l'espacement entre les matchs
 constraint forall(e1, e2 in equipes where e1 < e2)(
   let {
     var int: firstMatch = min([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0]),
     var int: secondMatch = max([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0])
   } in (
+    espacement_matchs[e1, e2] = secondMatch - firstMatch /\
     calendrier[e1,firstMatch] != calendrier[e1,secondMatch]
   )
 );
 
+% 7. Deux rencontres de deux équipes doivent être espacées de 3 jours au minimum
+constraint forall(e1, e2 in equipes where e1 < e2)(
+  espacement_matchs[e1, e2] > 3
+);
+
 % Objectif: Maximiser le nombre de fois où deux matchs entre les mêmes équipes sont espacés d'au moins 6 jours.
 objectif_match_espaces = sum(e1, e2 in equipes where e1 < e2)(
-  let {
-    var int: firstMatch = min([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0]),
-    var int: secondMatch = max([j | j in jours where calendrier[e1,j] = calendrier[e2,j] /\ calendrier[e1,j] > 0])
-  } in (
-    if abs(secondMatch - firstMatch) > 6 then 1 else 0 endif
-  )
+  if espacement_matchs[e1, e2] > 6 then 1 else 0 endif
 );
 
 solve maximize objectif_match_espaces;
+
 
 %-----------------------------------------------------------------------------%
 
